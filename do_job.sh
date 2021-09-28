@@ -1,11 +1,17 @@
 #!/bin/bash
 
+# ArchLinux Requirements:
+# arm-linux-gnueabihf-gcc
+# arm-linux-gnueabihf-binutils
+# arm-linux-gnueabihf-glibc
+# arm-linux-gnueabihf-linux-api-headers
+
 script_name=${0##*/}
 param_count=$#
 builder=
 builder_kernel=
 builder_modules=
-defconfig=
+defconfig=meson_reff16_defconfig
 makemenuconfig=
 doclean=
 device=
@@ -15,7 +21,7 @@ is_error=
 # This is hardcoded
 make_threads=4
 configs_folder=arch/arm/configs
-cross_path=/home/stane/Work/Linaro/2013.04/bin/arm-linux-gnueabihf-
+cross_path=/home/jilou/toolchain/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
 
 # Text color variables
 txtund=$(tput sgr 0 1)          # Underline
@@ -84,46 +90,46 @@ do_work()
 {
     # We want to make
     if [ "$1" == "make" ] ; then
-	if [ ! "$2" == "kernel" -a ! "$2" == "modules" ] ; then
-	    # Seems that we provided defconfig file to our script
-	    # Check if it exists
-	    if [ -f $configs_folder/$2 ] ; then
-		defconfig=$2
-	    elif [ -f $configs_folder/$2_defconfig ] ; then
-		defconfig=$2_defconfig
-	    else
-		# We did not find defconfig, show error
-		show_error "do_work" "Defconfig ${txtbld}$(tput setaf 1)$2$(tput sgr0) not found. please check your config folder."
-		is_error=1
+	    if [ ! "$2" == "kernel" -a ! "$2" == "modules" ] ; then
+	        # Seems that we provided defconfig file to our script
+	        # Check if it exists
+	        if [ -f $configs_folder/$2 ] ; then
+		        defconfig=$2
+	        elif [ -f $configs_folder/$2_defconfig ] ; then
+		        defconfig=$2_defconfig
+	        else
+		        # We did not find defconfig, show error
+		        show_error "do_work" "Defconfig ${txtbld}$(tput setaf 1)$2$(tput sgr0) not found. please check your config folder."
+		        is_error=1
+	        fi
+	        if [ ! $is_error ] ; then
+		        show_message "Writting defconfig to .config..."
+		        show_message "Defconfig is: ${txtbld}$(tput setaf 1)$defconfig$(tput sgr0)"
+		        make_defconfig
+	        fi
+	    elif [ "$2" == "kernel" ]; then
+	        if [ -f ./.config ] ; then
+		        show_message "Building uImage..."
+		        make_uimage
+	        else
+		        show_error "do_work" "You wanted to create uImage without selecting configuration."
+	        fi
+	    elif [ "$2" == "modules" ]; then
+	        if [ -f ./.config ] ; then
+		        show_message "Building modules..."
+		        make_modules
+	        else
+		        show_error "do_work" "You wanted to build modules without selecting configuration."
+	        fi
 	    fi
-	    if [ ! is_error ] ; then
-		show_message "Writting defconfig to .config..."
-		show_message "Defconfig is: ${txtbld}$(tput setaf 1)$defconfig$(tput sgr0)"
-		make_defconfig
-	    fi
-	elif [ "$2" == "kernel" ]; then
-	    if [ -f ./.config ] ; then
-		show_message "Building uImage..."
-		make_uimage
-	    else
-		show_error "do_work" "You wanted to create uImage without selecting configuration."
-	    fi
-	elif [ "$2" == "modules" ]; then
-	    if [ -f ./.config ] ; then
-		show_message "Building modules..."
-		make_modules
-	    else
-		show_error "do_work" "You wanted to build modules without selecting configuration."
-	    fi
-	fi
     # We want to open menuconfig
     elif [ "$1" == "menuconfig" ] ; then
-	if [ -f ./.config ] ; then
-	    show_message "Opening menuconfig..."
-	    make_menuconfig
-	else
-	    show_error "do_work" "You wanted to open menuconfig without selecting configuration."
-	fi
+	    if [ -f ./.config ] ; then
+	        show_message "Opening menuconfig..."
+	        make_menuconfig
+	    else
+	        show_error "do_work" "You wanted to open menuconfig without selecting configuration."
+	    fi
     fi
 }
 
@@ -148,7 +154,7 @@ make_menuconfig()
 }
 
 show_header
-if [ param_count == 0 ] ; then
+if [ $param_count == 0 ] ; then
     show_help
 else
     do_work $@
