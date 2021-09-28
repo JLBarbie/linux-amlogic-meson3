@@ -21,7 +21,7 @@ is_error=
 # This is hardcoded
 make_threads=4
 configs_folder=arch/arm/configs
-cross_path=/home/jilou/toolchain/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+cross_path=${HOME}/toolchain/arm-linux-gnueabihf-gcc4/bin/arm-linux-gnueabihf-
 
 # Text color variables
 txtund=$(tput sgr 0 1)          # Underline
@@ -67,7 +67,7 @@ show_error()
 {
     from_function=$1
     error_message=$2
-    
+
     echo " "
     echo "############################################################"
     echo "#####                      $(tput bold)$(tput setaf 1)ERROR$(tput sgr0)                       #####"
@@ -109,8 +109,8 @@ do_work()
 	        fi
 	    elif [ "$2" == "kernel" ]; then
 	        if [ -f ./.config ] ; then
-		        show_message "Building uImage..."
-		        make_uimage
+		        show_message "Building zImage..."
+		        make_zimage
 	        else
 		        show_error "do_work" "You wanted to create uImage without selecting configuration."
 	        fi
@@ -138,9 +138,9 @@ make_defconfig()
     make $defconfig CROSS_COMPILE=$cross_path -j$make_threads
 }
 
-make_uimage()
+make_zimage()
 {
-    make uImage CROSS_COMPILE=$cross_path -j$make_threads
+    make zImage CROSS_COMPILE=$cross_path -j$make_threads
 }
 
 make_modules()
